@@ -6,6 +6,8 @@ import com.seuprojeto.financiamentos.modelo.Casa;
 import com.seuprojeto.financiamentos.modelo.Financiamento;
 import com.seuprojeto.financiamentos.modelo.Terreno;
 import com.seuprojeto.financiamentos.util.InterfaceUsuario;
+import com.seuprojeto.financiamentos.util.GerenciadorDeDados;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,6 +15,7 @@ public class Main {
     public static void main(String[] args) {
         InterfaceUsuario ui = new InterfaceUsuario();
         List<Financiamento> financiamentos = new ArrayList<>();
+
         System.out.println("--- Digite os dados para o primeiro financiamento (tipo Casa) ---");
         try {
             double valorImovelUsuario = ui.pedirValorImovel();
@@ -32,15 +35,19 @@ public class Main {
         } catch (AumentoMaiorDoQueJurosException e) {
             System.err.println("Erro no cálculo da parcela da casa do usuário: " + e.getMessage());
         }
+
         System.out.println("\n--- Adicionando Financiamentos de Casa (dados fixos) ---");
         try {
+
             financiamentos.add(new Casa(300000.0, 20, 0.07, 120.0, 250.0));
+
             financiamentos.add(new Casa(100000.0, 5, 0.005, 80.0, 150.0));
         } catch (IllegalArgumentException e) {
             System.err.println("Erro ao criar financiamento de Casa fixa: " + e.getMessage());
         } catch (AumentoMaiorDoQueJurosException e) {
             System.err.println("Erro no cálculo da parcela de Casa fixa: " + e.getMessage());
         }
+
         System.out.println("\n--- Adicionando Financiamentos de Apartamento (dados fixos) ---");
         try {
             financiamentos.add(new Apartamento(250000.0, 15, 0.06, 1, 5)); // Apartamento 1
@@ -48,16 +55,18 @@ public class Main {
         } catch (IllegalArgumentException e) {
             System.err.println("Erro ao criar financiamento de Apartamento: " + e.getMessage());
         }
+
         System.out.println("\n--- Adicionando Financiamento de Terreno (dados fixos) ---");
         try {
             financiamentos.add(new Terreno(150000.0, 10, 0.09, "Comercial")); // Terreno
         } catch (IllegalArgumentException e) {
             System.err.println("Erro ao criar financiamento de Terreno: " + e.getMessage());
         }
+
         double somaValoresImoveis = 0;
         double somaTotalFinanciamentos = 0;
 
-        System.out.println("\n### RESUMO DE TODOS OS FINANCIAMENTOS ###");
+        System.out.println("\n### RESUMO DE TODOS OS FINANCIAMENTOS CRIADOS ###");
         for (Financiamento f : financiamentos) {
             try {
                 f.exibirDadosFinanciamento();
@@ -73,6 +82,46 @@ public class Main {
         System.out.printf("Soma total dos valores dos imóveis: R$ %.2f\n", somaValoresImoveis);
         System.out.printf("Soma total de todos os financiamentos: R$ %.2f\n", somaTotalFinanciamentos);
         System.out.println("----------------------------------------------------");
+
+        GerenciadorDeDados.salvarFinanciamentosTxt(financiamentos, "financiamentos.txt");
+
+        GerenciadorDeDados.salvarFinanciamentosSerializados(financiamentos, "financiamentos.ser");
+
+
+        System.out.println("\n*** COMPROVANDO A LEITURA DOS DADOS ***");
+
+        System.out.println("\n--- Financiamentos Lidos do Arquivo de Texto ---");
+        List<Financiamento> financiamentosLidosTxt = GerenciadorDeDados.lerFinanciamentosTxt("financiamentos.txt");
+        if (!financiamentosLidosTxt.isEmpty()) {
+            for (Financiamento f : financiamentosLidosTxt) {
+                try {
+                    f.exibirDadosFinanciamento();
+                } catch (AumentoMaiorDoQueJurosException e) {
+
+                    System.err.println("Erro ao exibir financiamento lido do texto: " + e.getMessage());
+                }
+            }
+        } else {
+            System.out.println("Nenhum financiamento lido do arquivo de texto ou o arquivo está vazio/com erro.");
+        }
+
+
+
+        System.out.println("\n--- Financiamentos Lidos do Arquivo Serializado ---");
+        List<Financiamento> financiamentosLidosSerializados = GerenciadorDeDados.lerFinanciamentosSerializados("financiamentos.ser");
+        if (!financiamentosLidosSerializados.isEmpty()) {
+            for (Financiamento f : financiamentosLidosSerializados) {
+                try {
+                    f.exibirDadosFinanciamento();
+                } catch (AumentoMaiorDoQueJurosException e) {
+
+                    System.err.println("Erro ao exibir financiamento lido do serializado: " + e.getMessage());
+                }
+            }
+        } else {
+            System.out.println("Nenhum financiamento lido do arquivo serializado ou o arquivo está vazio/com erro.");
+        }
+
 
         ui.fecharScanner();
     }
